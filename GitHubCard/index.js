@@ -1,7 +1,10 @@
+import axios from "axios";
+
 /*
   STEP 1: using axios, send a GET request to the following URL
     (replacing the placeholder with your Github name):
     https://api.github.com/users/<your name>
+
 */
 
 /*
@@ -28,7 +31,11 @@
     user, and adding that card to the DOM.
 */
 
-const followersArray = [];
+/* dom access */
+const cards = document.querySelector('.cards') 
+
+const followersArray = ['toxtli', 'audiowaves','cusspvz', 'dalinhuang99', 'alma4rebi', 'tetondan' ];
+followersArray.forEach( user =>  doGitCall(user))
 
 /*
   STEP 3: Create a function that accepts a single object as its only argument.
@@ -58,3 +65,58 @@ const followersArray = [];
     luishrd
     bigknell
 */
+
+function onGitDataSuccess({data, status } ){
+  console.log('onSucessAxios', status)
+  /* render the card component */
+  cards.appendChild(cardComponent(data)) 
+}
+
+function onGitDataFail({response, message } ){
+  console.log('onFailAxios', response)
+}
+
+function doGitCall(user){
+  /* get external data  */ //tetondan
+  axios.get(`https://api.github.com/users/${user}`) 
+  .then( res =>   onGitDataSuccess(res)  )
+  .catch(err =>   onGitDataFail(err) )
+}
+
+  
+
+ /* create structure : DOM */
+
+function cardComponent(userInfo) {
+ 
+  const template = [
+    {el:'div', attr:'card' },
+      {el:'img', parent:'card', url:userInfo.avatar_url },
+      {el:'div', attr:'card-info', parent:'card' },
+        {el:'h3', attr:'name', parent:'card-info',txt:userInfo.name},
+        {el:'p', attr:'username', parent:'card-info',txt:userInfo.login},
+        {el:'p', parent:'card-info', txt:`Location: ${userInfo.location}`},
+        {el:'p', parent:'card-info', txt:`Profile: `},
+          {el:'a', parent:'card-info', txt:userInfo.html_url, url:userInfo.html_url }, 
+        {el:'p', parent:'card-info', txt:`Followers: ${userInfo.followers}`},
+        {el:'p', parent:'card-info', txt:`Followers: ${userInfo.following}`},
+        {el:'p', parent:'card-info', txt:`Bio: ${userInfo.bio}`}
+    ]
+
+    const newDOM = function (el){ return document.createElement(el) } // shorthand
+    const markup = function(body){
+      const container = newDOM('div') //main wrapper
+      let tag = null
+      body.forEach( ({el, attr, parent, url, txt}) => {
+        tag = newDOM(el)
+        if(attr){ tag.classList.add(attr) } 
+        if(url){ tag.src = url } 
+        if(txt){ tag.innerText = txt  } 
+        const selector = parent ? container.querySelector(`.${parent}`) : container
+        selector.appendChild(tag)
+      })
+    return container
+  }
+
+  return  markup(template) 
+}
